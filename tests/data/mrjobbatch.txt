@@ -1,0 +1,3 @@
+/home/ccope/wot/1k
+/home/ccope/wot/10k
+/home/ccope/wot/69k

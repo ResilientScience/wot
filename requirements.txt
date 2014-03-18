@@ -1,0 +1,7 @@
+pip
+nose
+coverage
+xunit
+boto
+mrjob
+pandas
