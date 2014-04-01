@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """SEQUITUR algorithm implementation in Python.
 
 The SEQUITUR algorithm as developed by Craig Nevill-Manning and Ian Witten. They described implementation details in
@@ -20,7 +21,7 @@ the paper or use something a little more friendly. The syntax with S, or RX? Thi
 because our tests need to validate whatever we choose.
 """
 
-import sys
+import fileinput
 
 
 class Rule:
@@ -68,9 +69,6 @@ class Rule:
             text += '\n'
             processed_rules += 1
         return text
-
-
-digrams = {}
 
 
 class Symbol:
@@ -235,24 +233,19 @@ class Guard(Symbol):
 num_rules = 0
 
 
-def run(text):
+def run(lines):
     global num_rules
     global digrams
 
     first_rule = Rule(num_rules)
     num_rules += 1
     digrams = {}
-    for c in text:
-        first_rule.last().insert_after(Terminal(c))
-        first_rule.last().p.check()
-
+    for line in lines:
+        for c in line:
+            first_rule.last().insert_after(Terminal(c))
+            first_rule.last().p.check()
     return first_rule.get_rules()
 
 
-def main():
-    """Open the file given as the first argument and print the CFG for it."""
-    print run(open(sys.argv[1]).read())
-
-
 if __name__ == "__main__":
-    main()
+    print(run(fileinput.input()))
