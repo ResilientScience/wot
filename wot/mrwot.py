@@ -35,13 +35,13 @@ class Symbol(object):
             ret_val = False
         else:
             key = self.hash_value()
-            if self.grammar.digram_map.has_key(key):
-                match = self.grammar.digram_map[key]
-                if match.next != self:
-                    self.process_match(match)
-            else:
+            match = self.grammar.digram_map.get(key)
+            if match is None:
                 self.grammar.digram_map[key] = self
                 ret_val = False
+            else:
+                if match.next != self:
+                    self.process_match(match)
         return ret_val
 
     def delete(self):
@@ -67,10 +67,10 @@ class Symbol(object):
         first = self.rule.first()
         last = self.rule.last()
         key = self.hash_value()
-        if self.grammar.digram_map.get(key) == self:
+        if self.grammar.digram_map.get(key) is self:
             del self.grammar.digram_map[key]
         left.join(first)
-        right.join(last)
+        last.join(right)
         self.grammar.digram_map[last.hash_value()] = last
 
     def hash_value(self):
@@ -110,9 +110,13 @@ class Symbol(object):
             rule.last().insert_after(self.grammar.add_symbol(self.next))
             match.substitute(rule)
             self.substitute(rule)
-        if ((rule.first().rule is not None) and (
-                rule.first().rule.reference_count == 1)):
-            rule.first().expand()
+            first = rule.first()
+            self.grammar.digram_map[first.hash_value()] = first
+        first = rule.first()
+        first_rule = first.rule
+        if (first_rule is not None) and (first_rule.reference_count == 1):
+            first.expand()
+            self.grammar.remove_rule(first_rule)
 
     def substitute(self, rule):
         prev = self.prev
@@ -133,8 +137,10 @@ class Rule(object):
     def __init__(self, grammar):
         self.grammar = grammar
         self.reference_count = 0
-        self.guard = Symbol(grammar, self)
+        self.guard = grammar.add_symbol(self)
         self.guard.join(self.guard)
+        self.reference_count -= 1 # Remove guard from reference count.
+        assert self.reference_count == 0
         self.number = len(grammar.rules)
 
     def dump(self):
@@ -172,19 +178,21 @@ class Grammar(object):
     def add_symbol(self, value):
         return Symbol(self, value)
 
+    def remove_rule(self, rule):
+        assert rule in self.rules
+        idx = self.rules.index(rule)
+        self.rules[idx] = None
+        rule.grammar = None
+
     def build(self, sequence, segment=None):
         self.segment = segment
-        seq_iter = iter(sequence)
-        try:
-            self.root.last().insert_after(self.add_symbol(next(seq_iter)))
-        except StopIteration:
-            pass
-        for elem in seq_iter:
+        for elem in sequence:
             self.root.last().insert_after(self.add_symbol(elem))
             self.root.last().prev.check()
 
     def dump(self):
-        return self.segment, tuple(rule.dump() for rule in self.rules)
+        return self.segment, tuple(rule.dump() for rule in self.rules
+                                   if rule is not None)
 
     def join(self, other_grammar):
         assert ((self.segment is None) or
