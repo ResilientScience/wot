@@ -314,6 +314,9 @@ class Grammar(object):
                                             other_rule_rewrite_map)
         return ret_val
 
+    def rules_to_dict(self):
+        return dict(rule.dump() for rule in self.rules if rule is not None)
+
 # ______________________________________________________________________
 
 class MRWoT(MRJob):
