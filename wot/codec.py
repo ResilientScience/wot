@@ -268,7 +268,7 @@ def encode_str(instr):
 
 # ______________________________________________________________________
 
-def decode(istream, ostream):
+def make_decoder(grammar_dict, grammar_memo):
     def _decoder(symbols):
         symbols.reverse()
         while len(symbols) > 0:
@@ -281,11 +281,22 @@ def decode(istream, ostream):
                 rhs = grammar_dict[symbol][:]
                 rhs.reverse()
                 symbols.extend(rhs)
+    return _decoder
+
+# ______________________________________________________________________
+
+def make_memo(grammar_dict):
+    return dict((item[0], ''.join(item[1]))
+                for item in grammar_dict.items()
+                if all(sym not in grammar_dict for sym in item[1]))
+
+# ______________________________________________________________________
+
+def decode(istream, ostream):
     grammar_dict = decode_grammar_dict(istream)
-    grammar_memo = dict((item[0], ''.join(item[1]))
-                        for item in grammar_dict.items()
-                        if all(sym not in grammar_dict for sym in item[1]))
-    for data in _decoder(grammar_dict[0]):
+    grammar_memo = make_memo(grammar_dict)
+    decoder = make_decoder(grammar_dict, grammar_memo)
+    for data in decoder(grammar_dict[0]):
         ostream.write(data)
     ostream.flush()
 
@@ -330,19 +341,36 @@ def test_grammar_dicts():
 
 # ______________________________________________________________________
 
-def test_codec():
-    inp0 = StringIO.StringIO(USAGE)
-    out0 = StringIO.StringIO()
-    encode(inp0, out0)
-    inp0.close()
-    inp1 = StringIO.StringIO(out0.getvalue())
-    out0.close()
-    out1 = StringIO.StringIO()
-    decode(inp1, out1)
-    inp1.close()
-    result = out1.getvalue()
-    assert USAGE == result, "%r != %r!" % (USAGE, result)
-    out1.close()
+def test_encode(in_str = None):
+    if in_str is None:
+        in_str = USAGE
+    in_stream = StringIO.StringIO(in_str)
+    out_stream = StringIO.StringIO()
+    encode(in_stream, out_stream)
+    in_stream.close()
+    ret_val = out_stream.getvalue()
+    out_stream.close()
+    return ret_val
+
+# ______________________________________________________________________
+
+def test_decode(in_str):
+    in_stream = StringIO.StringIO(in_str)
+    out_stream = StringIO.StringIO()
+    decode(in_stream, out_stream)
+    in_stream.close()
+    ret_val = out_stream.getvalue()
+    out_stream.close()
+    return ret_val
+
+# ______________________________________________________________________
+
+def test_codec(in_str = None):
+    if in_str is None:
+        in_str = USAGE
+    encoded_str = test_encode(in_str)
+    result = test_decode(encoded_str)
+    assert in_str == result, "%r != %r!" % (in_str, result)
 
 # ______________________________________________________________________
 
