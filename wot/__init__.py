@@ -1,1 +1,1 @@
-__all__ = ['sequitur', 'mapreduce']
+__all__ = ['sequitur', 'mapreduce', 'dimer']
