@@ -5,7 +5,7 @@
 from wot import mrwot
 from collections import Counter
 import sys, struct, bitarray, getopt
-import StringIO # PY2
+import io
 
 # ______________________________________________________________________
 
@@ -309,7 +309,7 @@ def test_generators():
     single_int = struct.Struct("<I")
     enc_str = "".join(single_int.pack(out_elem) if isinstance(out_elem, int)
                       else out_elem for out_elem in enc_list)
-    decode_stream = StringIO.StringIO(enc_str)
+    decode_stream = io.BytesIO(enc_str)
     dec_list = list(process_decode_stream(decode_stream))
     decode_stream.close()
     assert enc_list == dec_list, "%r != %r!" % (enc_list, dec_list)
@@ -327,7 +327,7 @@ def test_grammar_dicts():
     enc_str = "".join(single_int.pack(out_elem) if isinstance(out_elem, int)
                       else out_elem 
                       for out_elem in encoder_outputs(hist, enc_grm_dict))
-    decode_stream = StringIO.StringIO(enc_str)
+    decode_stream = io.BytesIO(enc_str)
     dec_grm_dict = decode_grammar_dict(decode_stream)
     decode_stream.close()
     assert enc_grm_dict.keys() == dec_grm_dict.keys()
@@ -344,8 +344,8 @@ def test_grammar_dicts():
 def test_encode(in_str = None):
     if in_str is None:
         in_str = USAGE
-    in_stream = StringIO.StringIO(in_str)
-    out_stream = StringIO.StringIO()
+    in_stream = io.BytesIO(in_str)
+    out_stream = io.BytesIO()
     encode(in_stream, out_stream)
     in_stream.close()
     ret_val = out_stream.getvalue()
@@ -355,8 +355,8 @@ def test_encode(in_str = None):
 # ______________________________________________________________________
 
 def test_decode(in_str):
-    in_stream = StringIO.StringIO(in_str)
-    out_stream = StringIO.StringIO()
+    in_stream = io.BytesIO(in_str)
+    out_stream = io.BytesIO()
     decode(in_stream, out_stream)
     in_stream.close()
     ret_val = out_stream.getvalue()
