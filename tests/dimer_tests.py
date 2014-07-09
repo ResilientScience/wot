@@ -14,13 +14,13 @@ def test_basic():
 
 
 def test_input1():
-    assert dimer.histogram("tests/data/FILE1") == open("tests/data/FILE1.2").read()
+    assert dimer.histogram("tests/data/FILE1", 2) == open("tests/data/FILE1.2").read()
     
 def test_input2():
-    assert dimer.histogram("tests/data/FILE2") == open("tests/data/FILE2.2").read()
+    assert dimer.histogram("tests/data/FILE2", 2) == open("tests/data/FILE2.2").read()
     
 def test_input3():
-    assert dimer.histogram("tests/data/FILE3") == open("tests/data/FILE3.2").read()
+    assert dimer.histogram("tests/data/FILE3", 2) == open("tests/data/FILE3.2").read()
     
 def test_input4():
-    assert dimer.histogram("tests/data/FILE4") == open("tests/data/FILE4.2").read()
+    assert dimer.histogram("tests/data/FILE4", 2) == open("tests/data/FILE4.2").read()
